@@ -1,0 +1,27 @@
+import numpy as np
+
+import mne
+from mne import read_evokeds
+from mne.datasets import sample
+from mne.datasets.brainstorm import bst_raw
+from mne.viz import plot_arrowmap
+
+print(__doc__)
+
+path = sample.data_path()
+fname = path / "MEG" / "sample" / "sample_audvis-ave.fif"
+
+# load evoked data
+condition = "Left Auditory"
+evoked = read_evokeds(fname, condition=condition, baseline=(None, 0))
+evoked_mag = evoked.copy().pick(picks="mag", exclude="bads")
+evoked_grad = evoked.copy().pick(picks="grad", exclude="bads")
+max_time_idx = np.abs(evoked_mag.data).mean(axis=0).argmax()
+plot_arrowmap(evoked_mag.data[:, max_time_idx], evoked_mag.info)
+
+# Since planar gradiometers takes gradients along latitude and longitude,
+# they need to be projected to the flatten manifold span by magnetometer
+# or radial gradiometers before taking the gradients in the 2D Cartesian
+# coordinate system for visualization on the 2D topoplot. You can use the
+# ``info_from`` and ``info_to`` parameters to interpolate from
+# gradiometer data to magnetometer data.
